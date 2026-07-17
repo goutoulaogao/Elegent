@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用能策略推荐</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            padding: 30px;
+        }
+
+        .card {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .strategy-item {
+            border: 1px solid #e4e7ed;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .strategy-item:hover {
+            border-color: #409eff;
+            box-shadow: 0 0 8px rgba(64, 158, 255, 0.15);
+        }
+
+        .strategy-header {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            background: #fafbfc;
+        }
+
+        .level {
+            width: 50px;
+            height: 30px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            margin-right: 14px;
+            font-size: 14px;
+        }
+
+        .level.p1 { background-color: #f56c6c; }
+        .level.p2 { background-color: #e6a23c; }
+        .level.p3 { background-color: #67c23a; }
+        .level.p4 { background-color: #909399; }
+
+        .name {
+            flex: 1;
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .effect {
+            min-width: 120px;
+            text-align: right;
+            font-size: 15px;
+            color: #0088ff;
+            font-weight: bold;
+        }
+
+        .toggle {
+            margin-left: 10px;
+            color: #999;
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+
+        .strategy-detail {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.4s ease;
+            color: #555;
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        .strategy-detail.show {
+            padding: 14px 20px 20px;
+            max-height: 300px;
+            border-top: 1px dashed #eee;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #333;
+            margin-right: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="card-title">用能策略推荐</div>
+
+    <!-- P1 -->
+    <div class="strategy-item">
+        <div class="strategy-header">
+            <div class="level p1">P1</div>
+            <div class="name">空压机群控联动改造</div>
+            <div class="effect">预计节能 6.8%</div>
+            <div class="toggle">▼</div>
+        </div>
+        <div class="strategy-detail">
+            <div><span class="detail-label">优化目标：</span>降低空压机空载损耗，提升整体用气效率</div>
+            <div><span class="detail-label">优化逻辑：</span>根据生产线班次动态调整空压机加载/卸载顺序，避免低负荷时段多机空载运行造成的电力浪费。</div>
+            <div><span class="detail-label">预期收益：</span>系统稳定节能 6.8%，显著降低用电单耗与设备运行成本。</div>
+        </div>
+    </div>
+
+    <!-- P2 -->
+    <div class="strategy-item">
+        <div class="strategy-header">
+            <div class="level p2">P2</div>
+            <div class="name">蒸汽冷凝水回收提升</div>
+            <div class="effect">预计节能 4.2%</div>
+            <div class="toggle">▼</div>
+        </div>
+        <div class="strategy-detail">
+            <div><span class="detail-label">优化目标：</span>提高蒸汽冷凝水回收率，充分利用余热</div>
+            <div><span class="detail-label">优化逻辑：</span>排查并修复不稳定回收支路，更换失效疏水阀、疏通管路，减少热能与软化水浪费。</div>
+            <div><span class="detail-label">预期收益：</span>综合节能 4.2%，降低锅炉燃料消耗与补水成本。</div>
+        </div>
+    </div>
+
+    <!-- P3 -->
+    <div class="strategy-item">
+        <div class="strategy-header">
+            <div class="level p3">P3</div>
+            <div class="name">峰时段负荷转移</div>
+            <div class="effect">预计降本 8.5%</div>
+            <div class="toggle">▼</div>
+        </div>
+        <div class="strategy-detail">
+            <div><span class="detail-label">优化目标：</span>利用峰谷电价差降低用电成本</div>
+            <div><span class="detail-label">优化逻辑：</span>将高耗能试压工序从峰段调整至平/谷时段用电，不改变产量但大幅降低电费。</div>
+            <div><span class="detail-label">预期收益：</span>综合用电成本下降 8.5%，投入少、见效快。</div>
+        </div>
+    </div>
+
+    <!-- P4 -->
+    <div class="strategy-item">
+        <div class="strategy-header">
+            <div class="level p4">P4</div>
+            <div class="name">部门责任分解方案</div>
+            <div class="effect">闭环周期缩短 25%</div>
+            <div class="toggle">▼</div>
+        </div>
+        <div class="strategy-detail">
+            <div><span class="detail-label">优化目标：</span>建立能耗指标责任体系，加快问题闭环</div>
+            <div><span class="detail-label">优化逻辑：</span>按月将单位产值能耗指标分解至各部门，明确整改时限与考核机制，实现能耗管理全员负责。</div>
+            <div><span class="detail-label">预期收益：</span>异常整改闭环周期缩短 25%，管理效率显著提升。</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 点击展开/收起详情
+    document.querySelectorAll('.strategy-header').forEach(header => {
+        header.addEventListener('click', () => {
+            const detail = header.nextElementSibling;
+            const arrow = header.querySelector('.toggle');
+            detail.classList.toggle('show');
+            arrow.style.transform = detail.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0)';
+        });
+    });
+</script>
+
+</body>
+</html>
