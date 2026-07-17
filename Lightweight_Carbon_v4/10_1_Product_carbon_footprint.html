@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产品碳足迹管理</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .page-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .add-btn {
+            padding: 8px 16px;
+            background: #009688;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .table-box {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #009688;
+            color: #fff;
+            padding: 12px 10px;
+            text-align: center;
+            font-weight: normal;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 11px 10px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+            color: #555;
+        }
+
+        tbody tr:hover {
+            background-color: #f9fbfc;
+        }
+
+        .opt-btn {
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            border: none;
+            margin: 0 3px;
+        }
+
+        .btn-edit {
+            background: #009688;
+            color: #fff;
+        }
+
+        .btn-delete {
+            background: #f56c6c;
+            color: #fff;
+        }
+
+        .btn-file {
+            background: #409eff;
+            color: #fff;
+        }
+
+        /* 弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            width: 750px;
+            background: #fff;
+            border-radius: 8px;
+            padding: 25px;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 18px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .form-item {
+            margin-bottom: 15px;
+        }
+
+        .form-item label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .form-item input,
+        .form-item select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .btn-submit {
+            background: #009688;
+            color: #fff;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* 文件预览 */
+        .file-preview {
+            margin-top: 10px;
+            max-width: 100%;
+        }
+        .file-preview img {
+            max-width: 180px;
+            max-height: 180px;
+            border-radius: 4px;
+            border: 1px solid #eee;
+        }
+        .file-preview .pdf-icon {
+            font-size: 60px;
+            color: #f56c6c;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="page-header">
+            <div class="page-title">产品碳足迹管理</div>
+            <button class="add-btn" onclick="openAddModal()">+ 添加产品</button>
+        </div>
+
+        <div class="table-box">
+            <table>
+                <thead>
+                    <tr>
+                        <th>一级分类</th>
+                        <th>二级分类</th>
+                        <th>三级分类</th>
+                        <th>产品名称</th>
+                        <th>系统边界</th>
+                        <th>产品碳足迹值</th>
+                        <th>单位</th>
+                        <th>核算准则</th>
+                        <th>时间边界</th>
+                        <th>认证机构</th>
+                        <th>认证时间</th>
+                        <th>证明文件</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="dataBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 添加/编辑 弹窗 -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div class="modal-title" id="modalTitle">添加产品</div>
+            
+            <div class="form-item">
+                <label>一级分类</label>
+                <select id="c1">
+                    <option value="">请选择</option>
+                    <option value="分类列表敬请期待">分类列表敬请期待</option>
+                 
+                </select>
+            </div>
+            <div class="form-item">
+                <label>二级分类</label>
+                <select id="c2">
+                    <option value="">请选择</option>
+                    <option value="分类列表敬请期待">分类列表敬请期待</option>
+
+                </select>
+            </div>
+            <div class="form-item">
+                <label>三级分类</label>
+                <select id="c2_1">
+                    <option value="">请选择</option>
+                    <option value="分类列表敬请期待">分类列表敬请期待</option>
+                </select>
+            </div>
+
+            <div class="form-item">
+                <label>产品名称</label>
+                <input type="text" id="c3" placeholder="请输入产品名称">
+            </div>
+            <div class="form-item">
+                <label>系统边界</label>
+                <select id="c4">
+                    <option value="">请选择</option>
+                    <option value="从摇篮到大门">从摇篮到大门</option>
+          
+                    <option value="从摇篮到坟墓">从摇篮到坟墓</option>
+                </select>
+            </div>
+            <div class="form-item">
+                <label>产品碳足迹值</label>
+                <input type="text" id="c5" placeholder="请输入数字">
+            </div>
+            <div class="form-item">
+                <label>单位</label>
+                <select id="c6">
+                    <option value="">请选择</option>
+                    
+                    
+                    <option value="kgCO₂e/件">kgCO₂e/件</option>
+                    <option value="kgCO₂e/台">kgCO₂e/台</option>
+                </select>
+            </div>
+            <div class="form-item">
+                <label>核算准则</label>
+                <select id="c7">
+                    <option value="">请选择</option>
+                    <option value="ISO 14067">ISO 14067</option>
+                  
+                    <option value="GHG Protocol">GHG Protocol</option>
+                </select>
+            </div>
+            <div class="form-item">
+                <label>时间边界</label>
+                <input type="date" id="c8_start" style="width:48%;display:inline-block;">
+                <span style="margin:0 5px;">至</span>
+                <input type="date" id="c8_end" style="width:48%;display:inline-block;">
+            </div>
+            <div class="form-item">
+                <label>认证机构</label>
+                <input type="text" id="c9" placeholder="请输入认证机构">
+            </div>
+            <div class="form-item">
+                <label>认证时间</label>
+                <input type="date" id="c10">
+            </div>
+            <div class="form-item">
+                <label>上传证明文件（图片/PDF）</label>
+                <input type="file" id="certFile" accept="image/*,application/pdf">
+            </div>
+            <button class="btn-submit" onclick="saveData()">保存</button>
+        </div>
+    </div>
+
+    <!-- 证明文件查看弹窗 -->
+    <div class="modal" id="fileModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div class="modal-title">证明文件</div>
+            <div class="file-preview" id="filePreview"></div>
+        </div>
+    </div>
+
+    <script>
+        // 数据结构：[一级,二级,三级,名称,边界,值,单位,准则,时间边界,机构,认证时间, 文件base64, 文件类型]
+        let tableData = [
+            ["电气设备","工业电机","永磁同步电机","高效节能电机","从摇篮到大门","1.25","kgCO₂e/台","ISO 14067","2025-01-01至2025-12-31","中国质量认证中心","2025-06-10","",""],
+            ["机械设备","泵设备","离心泵","节能离心泵","从摇篮到坟墓","0.86","kgCO₂e/台","ISO 14067","2025-01-01至2025-12-31","方圆标志认证","2025-05-20","",""],
+            ["仪器仪表","监测仪表","智能传感器","智能监测终端","从摇篮到大门","0.32","kgCO₂e/台","ISO 14067","2025-01-01至2025-12-31","赛西认证","2025-04-15","",""]
+        ];
+
+        let currentEditIndex = -1;
+        let currentFileBase64 = "";
+        let currentFileType = "";
+
+        // 渲染表格
+        function renderTable() {
+            const body = document.getElementById('dataBody');
+            body.innerHTML = '';
+            tableData.forEach((row, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row[0]}</td>
+                    <td>${row[1]}</td>
+                    <td>${row[2]}</td>
+                    <td>${row[3]}</td>
+                    <td>${row[4]}</td>
+                    <td>${row[5]}</td>
+                    <td>${row[6]}</td>
+                    <td>${row[7]}</td>
+                    <td>${row[8]}</td>
+                    <td>${row[9]}</td>
+                    <td>${row[10]}</td>
+                    <td><button class="opt-btn btn-file" onclick="viewFile(${idx})">查看</button></td>
+                    <td>
+                        <button class="opt-btn btn-edit" onclick="editData(${idx})">编辑</button>
+                        <button class="opt-btn btn-delete" onclick="deleteData(${idx})">删除</button>
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        // 关闭弹窗
+        function closeModal() {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        }
+
+        // 打开添加
+        function openAddModal() {
+            currentEditIndex = -1;
+            currentFileBase64 = "";
+            currentFileType = "";
+            document.getElementById('modalTitle').innerText = '添加产品';
+            
+            // 清空表单
+            document.querySelectorAll('#editModal select, #editModal input[type="text"]').forEach(i => i.value = '');
+            document.getElementById('c8_start').value = '';
+            document.getElementById('c8_end').value = '';
+            document.getElementById('c10').value = '';
+            document.getElementById('certFile').value = '';
+            document.getElementById('c2_1').value = '';
+            
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        // 打开编辑
+        function editData(idx) {
+            currentEditIndex = idx;
+            const row = tableData[idx];
+            currentFileBase64 = row[11] || "";
+            currentFileType = row[12] || "";
+
+            document.getElementById('modalTitle').innerText = '编辑产品';
+            document.getElementById('c1').value = row[0];
+            document.getElementById('c2').value = row[1];
+            document.getElementById('c2_1').value = row[2];
+            document.getElementById('c3').value = row[3];
+            document.getElementById('c4').value = row[4];
+            document.getElementById('c5').value = row[5];
+            document.getElementById('c6').value = row[6];
+            document.getElementById('c7').value = row[7];
+
+            // 时间范围拆分
+            const timeRange = row[8].split('至');
+            document.getElementById('c8_start').value = timeRange[0]?.trim() || '';
+            document.getElementById('c8_end').value = timeRange[1]?.trim() || '';
+
+            document.getElementById('c9').value = row[9];
+            document.getElementById('c10').value = row[10];
+            
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        // 文件选择
+        document.getElementById('certFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                currentFileBase64 = ev.target.result;
+                currentFileType = file.type;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // 保存
+        function saveData() {
+            // 拼接时间范围
+            const timeRange = document.getElementById('c8_start').value + ' 至 ' + document.getElementById('c8_end').value;
+            
+            const arr = [
+                document.getElementById('c1').value,
+                document.getElementById('c2').value,
+                document.getElementById('c2_1').value,
+                document.getElementById('c3').value,
+                document.getElementById('c4').value,
+                document.getElementById('c5').value,
+                document.getElementById('c6').value,
+                document.getElementById('c7').value,
+                timeRange,
+                document.getElementById('c9').value,
+                document.getElementById('c10').value,
+                currentFileBase64,
+                currentFileType
+            ];
+            
+            if (currentEditIndex === -1) {
+                tableData.push(arr);
+            } else {
+                tableData[currentEditIndex] = arr;
+            }
+            closeModal();
+            renderTable();
+        }
+
+        // 删除
+        function deleteData(idx) {
+            if (!confirm('确定删除该数据？')) return;
+            tableData.splice(idx, 1);
+            renderTable();
+        }
+
+        // 查看文件
+        function viewFile(idx) {
+            const row = tableData[idx];
+            const base64 = row[11];
+            const type = row[12];
+            const preview = document.getElementById('filePreview');
+            
+            if (!base64) {
+                preview.innerHTML = '<div style="padding:20px;text-align:center;">未上传证明文件</div>';
+            } else if (type.includes('image')) {
+                preview.innerHTML = `<img src="${base64}" style="max-width:100%;max-height:500px">`;
+            } else if (type.includes('pdf')) {
+                preview.innerHTML = `
+                    <div style="text-align:center;padding:40px 0">
+                        <i class="fa fa-file-pdf-o pdf-icon"></i>
+                        <p style="margin-top:10px;font-size:16px">PDF证书文件（浏览器预览）</p>
+                        <a href="${base64}" target="_blank" class="opt-btn btn-file" style="margin-top:10px">打开查看</a>
+                    </div>`;
+            }
+            document.getElementById('fileModal').style.display = 'flex';
+        }
+
+        // 初始化
+        renderTable();
+    </script>
+</body>
+</html>

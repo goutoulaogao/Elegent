@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>产品碳因子库</title>
+<style>
+:root {
+  --bg: #080e1a;
+  --panel: #0c1528;
+  --card: #111c33;
+  --border: #1a2a45;
+  --accent: #00d4ff;
+  --accent3: #7c5ce7;
+  --text: #e0e6f0;
+  --text-dim: #8899bb;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, "Microsoft YaHei", "PingFang SC", sans-serif;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1920px;
+  margin: 0 auto;
+  padding: 20px 24px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.header h1 {
+  font-size: 20px; font-weight: 700; letter-spacing: 2px;
+  background: linear-gradient(90deg, var(--accent), #fff, var(--accent));
+  background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.header-right {
+  font-size: 13px; color: var(--text-dim);
+}
+
+/* Tab Buttons */
+.tab-bar {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 20px;
+  background: var(--card);
+  border-radius: 10px;
+  padding: 4px;
+  border: 1px solid var(--border);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.25s;
+  letter-spacing: 1px;
+}
+
+.tab-btn:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.03);
+}
+
+.tab-btn.active {
+  background: var(--accent);
+  color: #080e1a;
+  font-weight: 600;
+  box-shadow: 0 0 16px rgba(0,212,255,0.25);
+}
+
+/* Table Container */
+.table-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+thead th {
+  background: var(--card);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 14px 16px;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+  letter-spacing: 0.5px;
+}
+
+tbody td {
+  padding: 13px 16px;
+  font-size: 13px;
+  color: var(--text-dim);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+tbody tr:hover td {
+  background: rgba(0,212,255,0.03);
+  color: var(--text);
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Numeric values */
+td.num {
+  color: var(--accent3);
+  font-weight: 600;
+  font-family: "SF Mono", "Consolas", monospace;
+  white-space: nowrap;
+}
+
+td.num.negative {
+  color: #4caf50;
+}
+
+/* Empty cell */
+td.empty {
+  color: #3a4560;
+}
+
+/* Page indicator */
+.page-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-dim);
+  background: var(--card);
+}
+
+.page-info .count {
+  color: var(--accent);
+}
+
+/* Column widths */
+th.col-l1, td.col-l1 { min-width: 140px; }
+th.col-l2, td.col-l2 { min-width: 160px; }
+th.col-l3, td.col-l3 { min-width: 180px; }
+th.col-up, td.col-up { min-width: 100px; text-align: right; }
+th.col-up-unit, td.col-up-unit { min-width: 140px; }
+th.col-down, td.col-down { min-width: 100px; text-align: right; }
+th.col-down-unit, td.col-down-unit { min-width: 140px; }
+th.col-proc, td.col-proc { min-width: 200px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <h1>产品碳因子库</h1>
+    <!-- <div class="header-right">数据来源：产品碳因子库.xlsx</div> -->
+  </div>
+
+  <!-- Tab Buttons -->
+  <div class="tab-bar" id="tabBar">
+    <button class="tab-btn active" data-tab="0">工业产品</button>
+    <button class="tab-btn" data-tab="1">能源产品</button>
+    <button class="tab-btn" data-tab="2">生活产品</button>
+    <button class="tab-btn" data-tab="3">废弃物处理</button>
+    <button class="tab-btn" data-tab="4">交通服务</button>
+    <button class="tab-btn" data-tab="5">碳汇</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-panel">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th class="col-l1">1级分类</th>
+            <th class="col-l2">2级分类</th>
+            <th class="col-l3">3级分类</th>
+            <th class="col-up">上游排放</th>
+            <th class="col-up-unit">上游排放单位</th>
+            <th class="col-down">下游排放</th>
+            <th class="col-down-unit">下游排放单位</th>
+            <th class="col-proc">排放环节</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="page-info">
+      <span>展示 <span class="count" id="rowCount">5</span> 条记录（共 5 条）</span>
+      <span id="tabLabel">工业产品</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// Data from 产品碳因子库.xlsx (first 5 rows per sheet)
+// ============================================================
+const DATA = [
+  // 0: 工业产品
+  [
+    ["金属（Metal）", "黑色金属矿（Ferrous metal ore）", "铁矿石平均（Iron ore average）", 1.1, "吨二氧化碳当量/吨（t CO₂-eq/t）", "", "", "铁矿石开采和选矿：1.10"],
+    ["金属（Metal）", "黑色金属矿（Ferrous metal ore）", "铁矿石（Iron ore）", 2.14, "吨二氧化碳当量/吨（t CO₂-eq/t）", "", "", "铁矿石开采和选矿：2.138"],
+    ["金属（Metal）", "黑色金属矿（Ferrous metal ore）", "铁矿石（Iron ore）", 0.07, "吨二氧化碳当量/吨（t CO₂-eq/t）", "", "", "铁矿石开采和选矿：0.07"],
+    ["金属（Metal）", "黑色金属矿（Ferrous metal ore）", "锰矿石（Manganese ore）", 0.12, "吨二氧化碳当量/吨（t CO₂-eq/t）", "", "", "矿石开采：0.063；流通阶段：0.052；深加工：0.824"],
+    ["金属（Metal）", "有色金属矿（Nonferrous metal ore）", "铝土矿平均（Bauxite average）", 0.04, "吨二氧化碳当量/吨（t CO₂-eq/t）", "", "", ""],
+  ],
+  // 1: 能源产品
+  [
+    ["煤炭及煤制品（Coal and coal products）", "无烟煤（anthracite）", "无烟煤（anthracite）", 0.11, "吨二氧化碳当量/吨（t CO₂-eq/t）", 1.92, "吨二氧化碳当量/吨（t CO₂-eq/t）", "开采：0.1053；洗选：0.0025；燃烧：1.92"],
+    ["煤炭及煤制品（Coal and coal products）", "烟煤（bituminous coal）", "烟煤（bituminous coal）", 0.11, "吨二氧化碳当量/吨（t CO₂-eq/t）", 1.76, "吨二氧化碳当量/吨（t CO₂-eq/t）", "开采：0.1053；洗选：0.0025；燃烧：1.75"],
+    ["煤炭及煤制品（Coal and coal products）", "褐煤（Lignite）", "褐煤（Lignite）", 0.11, "吨二氧化碳当量/吨（t CO₂-eq/t）", 1.39, "吨二氧化碳当量/吨（t CO₂-eq/t）", "开采：0.1053；洗选：0.0025；燃烧：1.39"],
+    ["煤炭及煤制品（Coal and coal products）", "煤制品（煤制油除外）（Coal products）", "焦炭（Coke）", 0.54, "吨二氧化碳当量/吨（t CO₂-eq/t）", 2.85, "吨二氧化碳当量/吨（t CO₂-eq/t）", "生产：0.5370；燃烧：2.8500"],
+    ["煤炭及煤制品（Coal and coal products）", "煤制品（煤制油除外）（Coal products）", "型煤（Briquette）", 0.24, "吨二氧化碳当量/吨（t CO₂-eq/t）", 1.94, "吨二氧化碳当量/吨（t CO₂-eq/t）", "生产：0.242；燃烧：1.9400"],
+  ],
+  // 2: 生活产品
+  [
+    ["食品（Food）", "作物类（crops）", "高粱-中国（Sorghum-China）", 0.58, "吨二氧化碳当量/吨（t CO₂-eq/t）", "", "", "生产：0.145；存储研磨：0.1；运输：0.234；加工打包：0.1"],
+    ["食品（Food）", "作物类（crops）", "大麦-中国平均（Barley-China）", 0.87, "吨二氧化碳当量/吨（t CO₂-eq/t）", "", "", ""],
+    ["食品（Food）", "作物类（crops）", "大麦-东部沿海（Barley-East coast China）", 1.06, "吨二氧化碳当量/吨（t CO₂-eq/t）", "", "", "生产：0.63；存储研磨：0.1；运输：0.234；加工打包：0.1"],
+    ["食品（Food）", "作物类（crops）", "小麦-国外部分均值（Wheat-oversea average）", 0.52, "吨二氧化碳当量/吨（t CO₂-eq/t）", "", "", ""],
+    ["食品（Food）", "作物类（crops）", "小麦-中国（Wheat-China）", 1.06, "吨二氧化碳当量/吨（t CO₂-eq/t）", "", "", "生产：0.66；存储研磨：0.1；运输：0.234；加工打包：0.1"],
+  ],
+  // 3: 废弃物处理
+  [
+    ["生活垃圾（Municipal solid waste）", "混合垃圾（Mixed waste）", "混合垃圾处置平均（mixed waste average）", "", "", 353.19, "千克二氧化碳当量/吨（kg CO₂-eq/t）", "填埋约占46%，焚烧为33%，其他为21%"],
+    ["生活垃圾（Municipal solid waste）", "混合垃圾（Mixed waste）", "旅游商务垃圾处置（Tourism business waste）", "", "", 124.01, "千克二氧化碳当量/吨（kg CO₂-eq/t）", ""],
+    ["生活垃圾（Municipal solid waste）", "混合垃圾（Mixed waste）", "焚烧（incineration）", "", "", -124.3, "千克二氧化碳当量/吨（kg CO₂-eq/t）", "粉煤灰稳定为179.8，能源消耗-304.1"],
+    ["生活垃圾（Municipal solid waste）", "混合垃圾（Mixed waste）", "填埋（landfill）", "", "", 612.64, "千克二氧化碳当量/吨（kg CO₂-eq/t）", "排放：585.24，甲烷回收：-126.80，其他消耗：190.20"],
+    ["生活垃圾（Municipal solid waste）", "混合垃圾（Mixed waste）", "填埋-全国（landfill-nationwide）", "", "", 583.87, "千克二氧化碳当量/吨（kg CO₂-eq/t）", ""],
+  ],
+  // 4: 交通服务
+  [
+    ["交通排放（Traffic emission）", "道路交通（客运）（Road traffic (passenger transport)）", "道路交通（客运）平均（Road traffic (passenger transport)）", "", "", 0.028, "千克二氧化碳当量/(人·千米)（kgCO₂-eq/(person·km)）", ""],
+    ["交通排放（Traffic emission）", "道路交通（客运）（Road traffic (passenger transport)）", "柴油公交车（Diesel bus）", "", "", 0.015, "千克二氧化碳当量/(人·千米)（kgCO₂-eq/(person·km)）", ""],
+    ["交通排放（Traffic emission）", "道路交通（客运）（Road traffic (passenger transport)）", "电动公交车（Electric bus）", "", "", 0.00883, "千克二氧化碳当量/(人·千米)（kgCO₂-eq/(person·km)）", ""],
+    ["交通排放（Traffic emission）", "道路交通（客运）（Road traffic (passenger transport)）", "天然气公交车（Natural gas bus）", "", "", 0.005, "千克二氧化碳当量/(人·千米)（kgCO₂-eq/(person·km)）", ""],
+    ["交通排放（Traffic emission）", "道路交通（客运）（Road traffic (passenger transport)）", "柴油出租车（Diesel Taxi）", "", "", 0.045, "千克二氧化碳当量/(人·千米)（kgCO₂-eq/(person·km)）", ""],
+  ],
+  // 5: 碳汇
+  [
+    ["原木（Roundwood）", "工业原木（Insdustrial roundwood）", "工业原木（Insdustrial roundwood）", -1.819, "吨二氧化碳当量/吨（t CO₂-eq/t）", "", "", ""],
+    ["锯材（Sawnwood）", "锯材（Sawnwood）", "锯材平均（Sawnwood average）", -1.637, "吨二氧化碳当量/吨（t CO₂-eq/t）", "", "", ""],
+    ["锯材（Sawnwood）", "锯材（Sawnwood）", "普通锯材（Common sawnwood）", -1.637, "吨二氧化碳当量/吨（t CO₂-eq/t）", "", "", ""],
+    ["锯材（Sawnwood）", "锯材（Sawnwood）", "特种锯材（Special sawnwood）", -1.637, "吨二氧化碳当量/吨（t CO₂-eq/t）", "", "", ""],
+    ["锯材（Sawnwood）", "锯材（Sawnwood）", "枕木（Ground brace）", -1.637, "吨二氧化碳当量/吨（t CO₂-eq/t）", "", "", ""],
+  ],
+];
+
+const TAB_LABELS = ['工业产品', '能源产品', '生活产品', '废弃物处理', '交通服务', '碳汇'];
+
+// ============================================================
+// Render table
+// ============================================================
+const tbody = document.getElementById('tableBody');
+const rowCount = document.getElementById('rowCount');
+const tabLabel = document.getElementById('tabLabel');
+
+function formatCell(value) {
+  if (value === '' || value === null || value === undefined) {
+    return '<span class="empty">—</span>';
+  }
+  return value;
+}
+
+function renderTable(tabIndex) {
+  const rows = DATA[tabIndex];
+  let html = '';
+  rows.forEach(row => {
+    html += '<tr>';
+    // col 0: 1级分类
+    html += '<td class="col-l1">' + formatCell(row[0]) + '</td>';
+    // col 1: 2级分类
+    html += '<td class="col-l2">' + formatCell(row[1]) + '</td>';
+    // col 2: 3级分类
+    html += '<td class="col-l3">' + formatCell(row[2]) + '</td>';
+    // col 3: 上游排放 (numeric or empty)
+    if (row[3] === '' || row[3] === null || row[3] === undefined) {
+      html += '<td class="col-up empty">—</td>';
+    } else {
+      const cls = row[3] < 0 ? 'num negative' : 'num';
+      html += '<td class="col-up ' + cls + '">' + Number(row[3]).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 6}) + '</td>';
+    }
+    // col 4: 上游排放单位
+    html += '<td class="col-up-unit">' + formatCell(row[4]) + '</td>';
+    // col 5: 下游排放 (numeric or empty)
+    if (row[5] === '' || row[5] === null || row[5] === undefined) {
+      html += '<td class="col-down empty">—</td>';
+    } else {
+      const cls = row[5] < 0 ? 'num negative' : 'num';
+      html += '<td class="col-down ' + cls + '">' + Number(row[5]).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 6}) + '</td>';
+    }
+    // col 6: 下游排放单位
+    html += '<td class="col-down-unit">' + formatCell(row[6]) + '</td>';
+    // col 7: 排放环节
+    html += '<td class="col-proc">' + formatCell(row[7]) + '</td>';
+    html += '</tr>';
+  });
+  tbody.innerHTML = html;
+  rowCount.textContent = rows.length;
+  tabLabel.textContent = TAB_LABELS[tabIndex];
+}
+
+// ============================================================
+// Tab switching
+// ============================================================
+const tabButtons = document.querySelectorAll('.tab-btn');
+
+tabButtons.forEach(btn => {
+  btn.addEventListener('click', function() {
+    tabButtons.forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    const tabIndex = parseInt(this.getAttribute('data-tab'));
+    renderTable(tabIndex);
+  });
+});
+
+// Initial render
+renderTable(0);
+</script>
+
+</body>
+</html>

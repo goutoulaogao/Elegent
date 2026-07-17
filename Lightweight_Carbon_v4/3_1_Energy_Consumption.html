@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>能源消耗量分析</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f4f6f8;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        .page-title {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        /* 顶部指标卡片区域 */
+        .card-wrap {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .energy-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 16px 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .card-label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .card-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #4e73f5;
+        }
+
+        /* 柱状图容器 */
+        .chart-box {
+            width: 100%;
+            height: 380px;
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+        }
+
+        /* 查询栏 */
+        .query-bar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: #fff;
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+        .query-bar label {
+            font-size: 14px;
+            color: #333;
+        }
+        .query-bar select,
+        .query-bar button {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            outline: none;
+        }
+        .query-bar button {
+            background: #4e73f5;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* 表格 */
+        .table-box {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .table-box th,
+        .table-box td {
+            padding: 12px 10px;
+            text-align: center;
+            font-size: 14px;
+            border-bottom: 1px solid #eee;
+        }
+        .table-box th {
+            background-color: #4e73f5;
+            color: #fff;
+            font-weight: normal;
+        }
+        .table-box tr:hover {
+            background: #f9fafb;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="page-title">能源消耗统计分析</div>
+
+        <!-- 顶部：汇总数据卡片 -->
+        <div class="card-wrap">
+            <div class="energy-card">
+                <div class="card-label">总能耗(tce)</div>
+                <div class="card-value" id="cardTotal">0</div>
+            </div>
+            <div class="energy-card">
+                <div class="card-label">水(t)</div>
+                <div class="card-value" id="cardWater">0</div>
+            </div>
+            <div class="energy-card">
+                <div class="card-label">电(kWh)</div>
+                <div class="card-value" id="cardElec">0</div>
+            </div>
+            <div class="energy-card">
+                <div class="card-label">气(m³)</div>
+                <div class="card-value" id="cardGas">0</div>
+            </div>
+            <div class="energy-card">
+                <div class="card-label">热(J)</div>
+                <div class="card-value" id="cardHeat">0</div>
+            </div>
+            <div class="energy-card">
+                <div class="card-label">油(t)</div>
+                <div class="card-value" id="cardOil">0</div>
+            </div>
+            <div class="energy-card">
+                <div class="card-label">煤(t)</div>
+                <div class="card-value" id="cardCoal">0</div>
+            </div>
+            <div class="energy-card">
+                <div class="card-label">冷(J)</div>
+                <div class="card-value" id="cardCool">0</div>
+            </div>
+        </div>
+
+        <!-- 中间：全年总能耗柱状图 -->
+        <div id="barChart" class="chart-box"></div>
+
+        <!-- 查询条件：控制表格 -->
+        <div class="query-bar">
+            <label>年份：</label>
+            <select id="yearSelect">
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
+            </select>
+
+            <label>月份：</label>
+            <select id="monthSelect">
+                <option value="">全部</option>
+                <option value="1">1月</option>
+                <option value="2">2月</option>
+                <option value="3">3月</option>
+                <option value="4">4月</option>
+                <option value="5">5月</option>
+                <option value="6">6月</option>
+                <option value="7">7月</option>
+                <option value="8">8月</option>
+                <option value="9">9月</option>
+                <option value="10">10月</option>
+                <option value="11">11月</option>
+                <option value="12">12月</option>
+            </select>
+
+            <button id="searchBtn">表格查询</button>
+        </div>
+
+        <!-- 底部数据表格 -->
+        <table class="table-box">
+            <thead>
+                <tr>
+                    <th>年份</th>
+                    <th>月份</th>
+                    <th>总能耗(tce)</th>
+                    <th>水(t)</th>
+                    <th>电(kWh)</th>
+                    <th>气(m³)</th>
+                    <th>热(J)</th>
+                    <th>油(t)</th>
+                    <th>煤(t)</th>
+                    <th>冷(J)</th>
+                </tr>
+            </thead>
+            <tbody id="dataTable"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // 初始化图表、DOM元素
+        const barChart = echarts.init(document.getElementById('barChart'));
+        const dataTable = document.getElementById('dataTable');
+        const yearSelect = document.getElementById('yearSelect');
+        const monthSelect = document.getElementById('monthSelect');
+        const searchBtn = document.getElementById('searchBtn');
+
+        // 卡片DOM
+        const cardTotal = document.getElementById('cardTotal');
+        const cardWater = document.getElementById('cardWater');
+        const cardElec = document.getElementById('cardElec');
+        const cardGas = document.getElementById('cardGas');
+        const cardHeat = document.getElementById('cardHeat');
+        const cardOil = document.getElementById('cardOil');
+        const cardCoal = document.getElementById('cardCoal');
+        const cardCool = document.getElementById('cardCool');
+
+        // 12个月份名称
+        const monthList = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+
+        // 完整12个月模拟数据（2025全年）
+        const sourceData = [
+            { year: 2025, month: 1, total: 1020, water: 120, electricity: 620, gas: 80, heat: 90, oil: 40, coal: 70, cool: 60 },
+            { year: 2025, month: 2, total: 1150, water: 130, electricity: 680, gas: 90, heat: 100, oil: 45, coal: 105, cool: 65 },
+            { year: 2025, month: 3, total: 1320, water: 180, electricity: 730, gas: 85, heat: 110, oil: 50, coal: 165, cool: 72 },
+            { year: 2025, month: 4, total: 1280, water: 160, electricity: 710, gas: 95, heat: 105, oil: 48, coal: 162, cool: 68 },
+            { year: 2025, month: 5, total: 1410, water: 170, electricity: 760, gas: 100, heat: 120, oil: 55, coal: 205, cool: 78 },
+            { year: 2025, month: 6, total: 1360, water: 165, electricity: 720, gas: 105, heat: 115, oil: 52, coal: 203, cool: 74 },
+            { year: 2025, month: 7, total: 1580, water: 210, electricity: 820, gas: 110, heat: 130, oil: 60, coal: 220, cool: 90 },
+            { year: 2025, month: 8, total: 1620, water: 225, electricity: 850, gas: 115, heat: 135, oil: 63, coal: 225, cool: 92 },
+            { year: 2025, month: 9, total: 1450, water: 190, electricity: 780, gas: 102, heat: 122, oil: 58, coal: 210, cool: 88 },
+            { year: 2025, month: 10, total: 1240, water: 155, electricity: 690, gas: 92, heat: 108, oil: 46, coal: 170, cool: 70 },
+            { year: 2025, month: 11, total: 1130, water: 135, electricity: 650, gas: 88, heat: 98, oil: 43, coal: 112, cool: 66 },
+            { year: 2025, month: 12, total: 1260, water: 148, electricity: 700, gas: 96, heat: 106, oil: 49, coal: 158, cool: 69 }
+        ];
+
+        // ====================== 更新顶部汇总卡片（2025全年合计） ======================
+        function renderCardData() {
+            const data = sourceData.filter(i => i.year === 2025);
+            const sumTotal = data.reduce((s, i) => s + i.total, 0);
+            const sumWater = data.reduce((s, i) => s + i.water, 0);
+            const sumElec = data.reduce((s, i) => s + i.electricity, 0);
+            const sumGas = data.reduce((s, i) => s + i.gas, 0);
+            const sumHeat = data.reduce((s, i) => s + i.heat, 0);
+            const sumOil = data.reduce((s, i) => s + i.oil, 0);
+            const sumCoal = data.reduce((s, i) => s + i.coal, 0);
+            const sumCool = data.reduce((s, i) => s + i.cool, 0);
+
+            cardTotal.innerText = sumTotal.toFixed(2);
+            cardWater.innerText = sumWater.toFixed(2);
+            cardElec.innerText = sumElec.toFixed(2);
+            cardGas.innerText = sumGas.toFixed(2);
+            cardHeat.innerText = sumHeat.toFixed(2);
+            cardOil.innerText = sumOil.toFixed(2);
+            cardCoal.innerText = sumCoal.toFixed(2);
+            cardCool.innerText = sumCool.toFixed(2);
+        }
+
+        // ====================== 中间柱状图：2025全年每月总能耗(tce) ======================
+        function renderBarChart() {
+            const data = sourceData.filter(i => i.year === 2025);
+            const barData = data.map(item => item.total);
+            const option = {
+                title: { text: '2025年每月能源消耗总量', left: 'center', textStyle: { fontSize: 16 } },
+                tooltip: {
+                    trigger: 'axis',
+                    formatter: '{b}<br/>总能耗：{c} tce'
+                },
+                grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                xAxis: {
+                    type: 'category',
+                    data: monthList,
+                    axisLabel: { interval: 0 }
+                },
+                yAxis: { type: 'value', name: '总能耗(tce)' },
+                series: [
+                    {
+                        name: '月度总能耗',
+                        type: 'bar',
+                        data: barData,
+                        barWidth: '40%',
+                        itemStyle: {
+                            color: '#4e73f5',
+                            borderRadius: 4
+                        }
+                    }
+                ]
+            };
+            barChart.setOption(option);
+        }
+
+        // ====================== 底部表格渲染 ======================
+        function renderTable(data) {
+            dataTable.innerHTML = '';
+            if (data.length === 0) {
+                dataTable.innerHTML = '<tr><td colspan="10">暂无匹配数据</td></tr>';
+                return;
+            }
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.year}</td>
+                    <td>${item.month}</td>
+                    <td>${item.total.toFixed(2)}</td>
+                    <td>${item.water.toFixed(2)}</td>
+                    <td>${item.electricity.toFixed(2)}</td>
+                    <td>${item.gas.toFixed(2)}</td>
+                    <td>${item.heat.toFixed(2)}</td>
+                    <td>${item.oil.toFixed(2)}</td>
+                    <td>${item.coal.toFixed(2)}</td>
+                    <td>${item.cool.toFixed(2)}</td>
+                `;
+                dataTable.appendChild(tr);
+            });
+        }
+
+        // 表格查询过滤
+        function doTableSearch() {
+            const y = yearSelect.value;
+            const m = monthSelect.value;
+            let filtered = sourceData.filter(i => i.year == y);
+            if (m) filtered = filtered.filter(i => i.month == m);
+            renderTable(filtered);
+        }
+
+        // 窗口缩放自适应图表
+        window.addEventListener('resize', () => {
+            barChart.resize();
+        });
+        searchBtn.addEventListener('click', doTableSearch);
+
+        // 页面初始化加载
+        renderCardData();
+        renderBarChart();
+        doTableSearch();
+    </script>
+</body>
+</html>
