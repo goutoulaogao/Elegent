@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>能效平衡及优化</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            padding: 20px;
+            position: relative;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .page-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        /* 顶部指标 */
+        .top-box {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .top-card {
+            flex: 1;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        .top-card h4 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .top-card .num {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2d8cf0;
+        }
+
+        /* 桑基图区域 */
+        .chart-box {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            position: relative;
+        }
+        .chart-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        #sankeyChart {
+            width: 100%;
+            height: 360px;
+        }
+
+        /* 能源平衡表 */
+        .table-box {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        .table-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: center;
+            border: 1px solid #eee;
+        }
+        th {
+            background: #fafafa;
+            color: #333;
+            font-weight: bold;
+        }
+        td {
+            color: #555;
+        }
+
+        /* ========== 右上角设置面板 ========== */
+        .config-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        .config-btn {
+            padding: 6px 12px;
+            background: #4096ff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .config-dropdown {
+            display: none;
+            position: absolute;
+            top: 40px;
+            right: 0;
+            width: 280px;
+            background: #fff;
+            border: 1px solid #e5e6eb;
+            border-radius: 8px;
+            padding: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .config-dropdown.show {
+            display: block;
+        }
+        .config-item {
+            margin-bottom: 10px;
+        }
+        .config-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: #333;
+        }
+        .config-item select,
+        .config-item input {
+            width: 100%;
+            padding: 5px 8px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .save-btn {
+            width: 100%;
+            padding: 7px;
+            background: #4096ff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 6px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-title">能效平衡及优化</div>
+
+        <!-- 顶部：总输入、有效利用、损失比 -->
+        <div class="top-box">
+            <div class="top-card">
+                <h4>总输入能源量</h4>
+                <div class="num" id="totalInput">14220 tce</div>
+            </div>
+            <div class="top-card">
+                <h4>有效利用能源量</h4>
+                <div class="num" id="totalUse">12860 tce</div>
+            </div>
+            <div class="top-card">
+                <h4>能源损失比</h4>
+                <div class="num" id="lossRate">9.60%</div>
+            </div>
+        </div>
+
+        <!-- 中间：桑基图 -->
+        <div class="chart-box">
+            <div class="chart-title">能源输入分配与能源损耗桑基图</div>
+            
+            <!-- 右上角设置按钮 -->
+            <div class="config-panel">
+                <button class="config-btn">⚙️ 比例设置</button>
+                <div class="config-dropdown" id="configDropdown">
+                    <div class="config-item">
+                        <label>选择能源</label>
+                        <select id="energyType">
+                            <option value="水">水</option>
+                            <option value="电">电</option>
+                            <option value="气">气</option>
+                            <option value="热">热</option>
+                            <option value="煤">煤</option>
+                            <option value="油">油</option>
+                            <option value="冷">冷</option>
+                        </select>
+                    </div>
+                    <div class="config-item">
+                        <label>有效利用比例（%）</label>
+                        <input type="number" id="useRatio" value="90" min="0" max="100">
+                    </div>
+                    <div class="config-item">
+                        <label>能源损耗比例（%）</label>
+                        <input type="number" id="lossRatio" value="10" min="0" max="100" readonly>
+                    </div>
+                    <button class="save-btn" id="saveRatio">保存并应用</button>
+                </div>
+            </div>
+
+            <div id="sankeyChart"></div>
+        </div>
+
+        <!-- 底部：能源平衡表 -->
+        <div class="table-box">
+            <div class="table-title">能源平衡表</div>
+            <table id="balanceTable">
+                <tr>
+                    <th>能源名称</th>
+                    <th>能耗值(tce)</th>
+                    <th>损耗值(tce)</th>
+                    <th>效率(%)</th>
+                    <th>损耗率(%)</th>
+                </tr>
+                <tr>
+                    <td>水</td>
+                    <td>1200</td>
+                    <td>60</td>
+                    <td>95.0%</td>
+                    <td>5.0%</td>
+                </tr>
+                <tr>
+                    <td>电</td>
+                    <td>8940</td>
+                    <td>620</td>
+                    <td>93.1%</td>
+                    <td>6.9%</td>
+                </tr>
+                <tr>
+                    <td>气</td>
+                    <td>1080</td>
+                    <td>216</td>
+                    <td>80.0%</td>
+                    <td>20.0%</td>
+                </tr>
+                <tr>
+                    <td>热</td>
+                    <td>1100</td>
+                    <td>220</td>
+                    <td>80.0%</td>
+                    <td>20.0%</td>
+                </tr>
+                <tr>
+                    <td>煤</td>
+                    <td>900</td>
+                    <td>189</td>
+                    <td>79.0%</td>
+                    <td>21.0%</td>
+                </tr>
+                <tr>
+                    <td>油</td>
+                    <td>600</td>
+                    <td>120</td>
+                    <td>80.0%</td>
+                    <td>20.0%</td>
+                </tr>
+                <tr>
+                    <td>冷</td>
+                    <td>400</td>
+                    <td>125</td>
+                    <td>68.8%</td>
+                    <td>31.2%</td>
+                </tr>
+                <tr>
+                    <td>合计</td>
+                    <td>14220</td>
+                    <td>1550</td>
+                    <td>89.1%</td>
+                    <td>10.9%</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        var myChart = echarts.init(document.getElementById('sankeyChart'));
+        const configBtn = document.querySelector('.config-btn');
+        const configDropdown = document.getElementById('configDropdown');
+        const saveRatioBtn = document.getElementById('saveRatio');
+        const useRatioInput = document.getElementById('useRatio');
+        const lossRatioInput = document.getElementById('lossRatio');
+
+        // 桑基图原始数据 替换为 水、电、气、热、煤、油、冷
+        let sankeyData = {
+            nodes: [
+                { name: '总输入能源' },
+                { name: '水' },
+                { name: '电' },
+                { name: '气' },
+                { name: '热' },
+                { name: '煤' },
+                { name: '油' },
+                { name: '冷' },
+                { name: '有效利用' },
+                { name: '能源损耗' }
+            ],
+            links: [
+                // 总输入流向各类能源
+                { source: '总输入能源', target: '水', value: 1200 },
+                { source: '总输入能源', target: '电', value: 8940 },
+                { source: '总输入能源', target: '气', value: 1080 },
+                { source: '总输入能源', target: '热', value: 1100 },
+                { source: '总输入能源', target: '煤', value: 900 },
+                { source: '总输入能源', target: '油', value: 600 },
+                { source: '总输入能源', target: '冷', value: 400 },
+
+                // 各类能源拆分有效利用/损耗
+                { source: '水', target: '有效利用', value: 1140 },
+                { source: '水', target: '能源损耗', value: 60 },
+
+                { source: '电', target: '有效利用', value: 8320 },
+                { source: '电', target: '能源损耗', value: 620 },
+
+                { source: '气', target: '有效利用', value: 864 },
+                { source: '气', target: '能源损耗', value: 216 },
+
+                { source: '热', target: '有效利用', value: 880 },
+                { source: '热', target: '能源损耗', value: 220 },
+
+                { source: '煤', target: '有效利用', value: 711 },
+                { source: '煤', target: '能源损耗', value: 189 },
+
+                { source: '油', target: '有效利用', value: 480 },
+                { source: '油', target: '能源损耗', value: 120 },
+
+                { source: '冷', target: '有效利用', value: 275 },
+                { source: '冷', target: '能源损耗', value: 125 }
+            ]
+        };
+
+        // 渲染图表
+        function renderChart() {
+            myChart.setOption({
+                tooltip: { trigger: 'item', formatter: '{b}: {c} tce' },
+                series: [{
+                    type: 'sankey',
+                    layout: 'none',
+                    emphasis: { focus: 'adjacency' },
+                    data: sankeyData.nodes,
+                    links: sankeyData.links,
+                    lineStyle: { color: 'gradient', curveness: 0.5 }
+                }]
+            });
+            updateCardsAndTable();
+        }
+
+        // 自动计算损耗比例
+        useRatioInput.addEventListener('input', function(){
+            let use = Number(this.value);
+            lossRatioInput.value = 100 - use;
+        });
+
+        // 保存比例
+        saveRatioBtn.addEventListener('click', function(){
+            const energy = document.getElementById('energyType').value;
+            const useRatio = Number(useRatioInput.value);
+            if(useRatio < 0 || useRatio > 100) {
+                alert('请输入0-100之间的比例');
+                return;
+            }
+            const lossRatio = 100 - useRatio;
+
+            // 获取该能源总能耗
+            const total = sankeyData.links.find(i => i.source === '总输入能源' && i.target === energy).value;
+            const useVal = Math.round(total * useRatio / 100);
+            const lossVal = total - useVal;
+
+            // 更新桑基图
+            sankeyData.links.forEach(i => {
+                if(i.source === energy && i.target === '有效利用') i.value = useVal;
+                if(i.source === energy && i.target === '能源损耗') i.value = lossVal;
+            });
+
+            configDropdown.classList.remove('show');
+            renderChart();
+        });
+
+        // 更新顶部卡片 + 表格
+        function updateCardsAndTable() {
+            const totalInput = 14220;
+            let totalUse = 0, totalLoss = 0;
+            const dataMap = {};
+
+            sankeyData.links.forEach(i => {
+                if(i.target === '有效利用') totalUse += i.value;
+                if(i.target === '能源损耗') totalLoss += i.value;
+                if(i.source === '总输入能源') dataMap[i.target] = i.value;
+            });
+
+            // 顶部数值
+            document.getElementById('totalInput').innerText = totalInput + ' tce';
+            document.getElementById('totalUse').innerText = totalUse + ' tce';
+            document.getElementById('lossRate').innerText = ((totalLoss/totalInput)*100).toFixed(2) + '%';
+
+            // 表格行对应能源顺序：水、电、气、热、煤、油、冷
+            const trs = document.querySelectorAll('#balanceTable tr:not(:first-child)');
+            const items = ['水','电','气','热','煤','油','冷'];
+            items.forEach((name, idx) => {
+                const total = dataMap[name] || 0;
+                const loss = sankeyData.links.find(i => i.source === name && i.target === '能源损耗')?.value || 0;
+                const use = total - loss;
+                const eff = total === 0 ? "0.0" : ((use/total)*100).toFixed(1);
+                const lossP = total === 0 ? "0.0" : ((loss/total)*100).toFixed(1);
+
+                const tds = trs[idx].querySelectorAll('td');
+                tds[1].innerText = total;
+                tds[2].innerText = loss;
+                tds[3].innerText = eff + '%';
+                tds[4].innerText = lossP + '%';
+            });
+
+            // 合计行（第8行，索引7）
+            const last = trs[7].querySelectorAll('td');
+            last[1].innerText = totalInput;
+            last[2].innerText = totalLoss;
+            last[3].innerText = ((totalUse/totalInput)*100).toFixed(1) + '%';
+            last[4].innerText = ((totalLoss/totalInput)*100).toFixed(1) + '%';
+        }
+
+        // 面板开关
+        configBtn.addEventListener('click', () => {
+            configDropdown.classList.toggle('show');
+        });
+
+        // 初始化
+        renderChart();
+        window.addEventListener('resize', () => myChart.resize());
+    </script>
+</body>
+</html>

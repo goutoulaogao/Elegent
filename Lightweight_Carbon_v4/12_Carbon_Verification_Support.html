@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>碳核查数据支撑表</title>
+    <!-- 引入Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        // Tailwind 自定义配置
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        table: '#F5F7FA'
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .table-scroll {
+                overflow-x: auto;
+            }
+            .cell-width {
+                min-width: 100px;
+            }
+            .month-cell {
+                min-width: 80px;
+            }
+            .opt-cell {
+                min-width: 120px;
+            }
+            /* 弹窗遮罩 */
+            .modal-backdrop {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 999;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 md:p-6">
+    <div class="max-w-full mx-auto bg-white rounded-lg shadow-md p-5">
+        <!-- 页面标题 -->
+        <h2 class="text-[clamp(1.2rem,2vw,1.8rem)] font-bold text-gray-800 mb-6">
+            <i class="fa-solid fa-file-invoice-dollar text-primary mr-2"></i>碳核查能源数据统计表
+        </h2>
+
+        <!-- 搜索区域 -->
+        <div class="mb-6 flex flex-wrap items-center gap-3">
+            <label class="text-gray-700 font-medium">能源名称查询：</label>
+            <div class="relative">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="请输入能源名称检索..."
+                    class="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary w-64"
+                >
+                <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            </div>
+            <!-- 查询按钮 -->
+            <button id="searchBtn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition">
+                <i class="fa-solid fa-search mr-1"></i>查询
+            </button>
+            <button id="resetBtn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">
+                <i class="fa-solid fa-refresh mr-1"></i>重置
+            </button>
+        </div>
+
+        <!-- 数据表格（横向滚动适配多列） -->
+        <div class="table-scroll border border-gray-200 rounded-lg">
+            <table class="w-full border-collapse whitespace-nowrap">
+                <!-- 表头 -->
+                <thead>
+                    <tr class="bg-table">
+                        <th class="cell-width border border-gray-200 px-3 py-3 text-left font-semibold text-gray-700 sticky left-0 bg-table z-10">能源名称</th>
+                        <th class="cell-width border border-gray-200 px-3 py-3 text-left font-semibold text-gray-700">年总值</th>
+                        <th class="cell-width border border-gray-200 px-3 py-3 text-left font-semibold text-gray-700">单位</th>
+                        <th class="month-cell border border-gray-200 px-3 py-3 text-center font-semibold text-gray-700">一月</th>
+                        <th class="month-cell border border-gray-200 px-3 py-3 text-center font-semibold text-gray-700">二月</th>
+                        <th class="month-cell border border-gray-200 px-3 py-3 text-center font-semibold text-gray-700">三月</th>
+                        <th class="month-cell border border-gray-200 px-3 py-3 text-center font-semibold text-gray-700">四月</th>
+                        <th class="month-cell border border-gray-200 px-3 py-3 text-center font-semibold text-gray-700">五月</th>
+                        <th class="month-cell border border-gray-200 px-3 py-3 text-center font-semibold text-gray-700">六月</th>
+                        <th class="month-cell border border-gray-200 px-3 py-3 text-center font-semibold text-gray-700">七月</th>
+                        <th class="month-cell border border-gray-200 px-3 py-3 text-center font-semibold text-gray-700">八月</th>
+                        <th class="month-cell border border-gray-200 px-3 py-3 text-center font-semibold text-gray-700">九月</th>
+                        <th class="month-cell border border-gray-200 px-3 py-3 text-center font-semibold text-gray-700">十月</th>
+                        <th class="month-cell border border-gray-200 px-3 py-3 text-center font-semibold text-gray-700">十一月</th>
+                        <th class="month-cell border border-gray-200 px-3 py-3 text-center font-semibold text-gray-700">十二月</th>
+                        <!-- 证明材料列 -->
+                        <th class="opt-cell border border-gray-200 px-3 py-3 text-center font-semibold text-gray-700">证明材料</th>
+                    </tr>
+                </thead>
+                <!-- 表格主体 -->
+                <tbody id="dataTable">
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="border border-gray-200 px-3 py-2 sticky left-0 bg-white">电力</td>
+                        <td class="border border-gray-200 px-3 py-2">125600</td>
+                        <td class="border border-gray-200 px-3 py-2">kWh</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">10200</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">9800</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">10500</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">10100</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">9900</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">10300</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">11200</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">11500</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">10800</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">10600</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">10700</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">10000</td>
+                        <!-- 证明材料查看按钮 -->
+                        <td class="border border-gray-200 px-3 py-2 text-center">
+                            <button onclick="viewMaterial('电力')" class="px-3 py-1 bg-primary text-white rounded hover:bg-primary/80 transition">
+                                <i class="fa-solid fa-folder-open mr-1"></i>查看
+                            </button>
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="border border-gray-200 px-3 py-2 sticky left-0 bg-white">天然气</td>
+                        <td class="border border-gray-200 px-3 py-2">36800</td>
+                        <td class="border border-gray-200 px-3 py-2">m³</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">4200</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">4100</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">3200</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">2800</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">2500</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">2600</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">2300</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">2400</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">2700</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">3100</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">3800</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">3900</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">
+                            <button onclick="viewMaterial('天然气')" class="px-3 py-1 bg-primary text-white rounded hover:bg-primary/80 transition">
+                                <i class="fa-solid fa-folder-open mr-1"></i>查看
+                            </button>
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="border border-gray-200 px-3 py-2 sticky left-0 bg-white">柴油</td>
+                        <td class="border border-gray-200 px-3 py-2">8600</td>
+                        <td class="border border-gray-200 px-3 py-2">t</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">720</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">680</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">750</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">710</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">690</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">730</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">800</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">820</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">780</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">760</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">770</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">690</td>
+                        <td class="border border-gray-200 px-3 py-2 text-center">
+                            <button onclick="viewMaterial('柴油')" class="px-3 py-1 bg-primary text-white rounded hover:bg-primary/80 transition">
+                                <i class="fa-solid fa-folder-open mr-1"></i>查看
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 空数据提示 -->
+        <div id="emptyTip" class="hidden text-center py-10 text-gray-500 text-lg">
+            <i class="fa-solid fa-inbox text-3xl mb-2 block"></i>
+            未查询到匹配的能源数据
+        </div>
+    </div>
+
+    <!-- 证明材料查看弹窗 -->
+    <div id="materialModal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+        <div class="modal-backdrop" onclick="closeModal()"></div>
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 relative z-10">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">证明材料详情</h3>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="modalContent" class="py-4 border-t border-gray-200">
+                <!-- 弹窗内容 -->
+            </div>
+            <div class="text-right mt-5 pt-4 border-t border-gray-200">
+                <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const tableBody = document.getElementById('dataTable');
+        const emptyTip = document.getElementById('emptyTip');
+        const materialModal = document.getElementById('materialModal');
+        const modalContent = document.getElementById('modalContent');
+        const rows = tableBody.querySelectorAll('tr');
+
+        // 搜索筛选函数（抽离公共方法）
+        function searchData() {
+            const keyword = searchInput.value.trim().toLowerCase();
+            let hasData = false;
+
+            rows.forEach(row => {
+                const energyName = row.querySelector('td:first-child').textContent.toLowerCase();
+                if (energyName.includes(keyword)) {
+                    row.classList.remove('hidden');
+                    hasData = true;
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+
+            if (hasData) {
+                tableBody.classList.remove('hidden');
+                emptyTip.classList.add('hidden');
+            } else {
+                tableBody.classList.add('hidden');
+                emptyTip.classList.remove('hidden');
+            }
+        }
+
+        // 1. 点击查询按钮搜索
+        searchBtn.addEventListener('click', searchData);
+
+        // 2. 回车搜索
+        searchInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') searchData();
+        });
+
+        // 重置搜索
+        resetBtn.addEventListener('click', function () {
+            searchInput.value = '';
+            rows.forEach(row => row.classList.remove('hidden'));
+            tableBody.classList.remove('hidden');
+            emptyTip.classList.add('hidden');
+        });
+
+        // 查看证明材料
+        function viewMaterial(energyName) {
+            modalContent.innerHTML = `
+                <div class="space-y-3">
+                    <p class="text-gray-700"><strong>能源名称：</strong>${energyName}</p>
+                    <p class="text-gray-700"><strong>证明材料类型：</strong>${energyName === '电力' ? '电费抄表单、发票' : '采购单据、消耗凭证'}</p>
+                    <p class="text-gray-700"><strong>材料状态：</strong><span class="text-green-600">已上传</span></p>
+                    <div class="mt-4 p-3 bg-gray-50 rounded border border-gray-200">
+                        <p class="text-gray-600 mb-2"><i class="fa-solid fa-paperclip mr-2"></i>附件文件：</p>
+                        <ul class="text-primary">
+                            <li class="py-1"><i class="fa-solid fa-file-pdf mr-2"></i>${energyName}_消耗证明.pdf</li>
+                            <li class="py-1"><i class="fa-solid fa-file-image mr-2"></i>${energyName}_单据照片.jpg</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            materialModal.classList.remove('hidden');
+        }
+
+        // 关闭弹窗
+        function closeModal() {
+            materialModal.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
